@@ -1,0 +1,17 @@
+[package]
+name = "mstu-sdk"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+description = "The ABI an mstu plugin is written against: messages, schemas and the host context."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ng-he/mstu-sdk"
+readme = "README.md"
+keywords = ["media", "pipeline", "plugin", "abi"]
+categories = ["multimedia"]
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[build-dependencies]
+cbindgen = "0.29.4"
