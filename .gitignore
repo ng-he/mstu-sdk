@@ -1,2 +1,5 @@
 /target
 Cargo.lock
+
+# clangd puts its index beside compile_flags.txt.
+/.cache

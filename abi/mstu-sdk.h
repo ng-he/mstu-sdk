@@ -330,6 +330,10 @@ typedef struct PluginDescriptor {
   const struct Schema *(*live_schema)(void);
 } PluginDescriptor;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 const struct Value *value_get(struct Slice_Value slice, uintptr_t index);
 
 /**
@@ -344,6 +348,41 @@ void __cbindgen_force_value(struct Value _v);
 extern const struct PluginDescriptor *plugin_descriptor(void);
 
 struct Str str_from_cstr(const char *ptr);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus
+
+/// A `Str` from a string literal, for the names and descriptions of a schema.
+#define MSTU_STR(text) { (const uint8_t *)(text), sizeof(text) - 1 }
+
+/// A slice over a static array: a schema's fields, or a descriptor's events.
+#define MSTU_SLICE(array) { (array), sizeof(array) / sizeof((array)[0]) }
+
+/// The types a field can carry, as the Rust side spells them. The three
+/// that say nothing beyond their kind still name a union member, or
+/// -Wmissing-field-initializers counts the silence as a mistake.
+static const struct Type MSTU_TYPE_BOOL = { TypeBool, { .bool_ = {} } };
+static const struct Type MSTU_TYPE_STRING = { TypeString, { .string_ = {} } };
+static const struct Type MSTU_TYPE_BYTES = { TypeBytes, { .bytes_ = {} } };
+
+static const struct Type MSTU_TYPE_I8 = { TypeInt, { .int_ = { true, 8 } } };
+static const struct Type MSTU_TYPE_U8 = { TypeInt, { .int_ = { false, 8 } } };
+static const struct Type MSTU_TYPE_I16 = { TypeInt, { .int_ = { true, 16 } } };
+static const struct Type MSTU_TYPE_U16 = { TypeInt, { .int_ = { false, 16 } } };
+static const struct Type MSTU_TYPE_I32 = { TypeInt, { .int_ = { true, 32 } } };
+static const struct Type MSTU_TYPE_U32 = { TypeInt, { .int_ = { false, 32 } } };
+static const struct Type MSTU_TYPE_I64 = { TypeInt, { .int_ = { true, 64 } } };
+static const struct Type MSTU_TYPE_U64 = { TypeInt, { .int_ = { false, 64 } } };
+
+static const struct Type MSTU_TYPE_F32 = { TypeFloat, { .float_ = { 32 } } };
+static const struct Type MSTU_TYPE_F64 = { TypeFloat, { .float_ = { 64 } } };
+
+/// The three that name something of their own, so they are written where
+/// they are used rather than kept here.
+#define MSTU_TYPE_LIST(element) { TypeList, { .list_ = { (element) } } }
+#define MSTU_TYPE_RECORD(schema) { TypeRecord, { .record_ = { (schema) } } }
+#define MSTU_TYPE_ENUM(schema) { TypeEnum, { .enum_ = (schema) } }
 
 static inline struct Value mstu_none(void) {
   struct Value v = { ValueNone, { .uint_ = 0 } };
@@ -388,6 +427,14 @@ static inline struct Value mstu_list(const struct Value *values, uintptr_t len) 
 static inline struct Value mstu_record(const struct Value *fields, uintptr_t len) {
   struct Value v = { ValueRecord, { .record_ = { fields, len } } };
   return v;
+}
+
+/// The value of field `index`, or null if the message carries fewer.
+///
+/// A plugin needs this header and nothing else: the Rust library is not
+/// linked against, so reading a message cannot go through it.
+static inline const struct Value *mstu_value(const struct Message *message, uintptr_t index) {
+  return index < message->values.len ? &message->values.ptr[index] : NULL;
 }
 
 /// Writes the whole message: one value per field, in order.

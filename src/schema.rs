@@ -1,7 +1,7 @@
 use crate::{Slice, Str, Value};
 
 #[repr(C)]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum TypeKind {
     TypeBool,
     TypeInt,
